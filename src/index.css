@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --color-brand: #4e8416;
+  --color-brand-dark: #3c6811;
+  --color-brand-tint: #f0f6e9;
+
+  /* Case-owner queue badges: blue = Nurse queue, green (brand, above) =
+     Medical Director queue. Same 3-token shape as brand for a matching
+     badge style — border tint, background tint, text. */
+  --color-nurse: #2f6fb0;
+  --color-nurse-dark: #1f4d80;
+  --color-nurse-tint: #e8f1fa;
+
+  --color-ink: #2c2c2a;
+  --color-ink-soft: #5c5c58;
+  --color-ink-faint: #8a8a86;
+
+  --color-paper: #fdfdfc;
+  --color-surface: #ffffff;
+  --color-line: #e4e3df;
+
+  --color-met: #1a7f37;
+  --color-met-bg: #eaf6ee;
+  --color-met-border: #bfe3cb;
+
+  --color-ambiguous: #9a6700;
+  --color-ambiguous-bg: #fdf3d8;
+  --color-ambiguous-border: #f0dca0;
+
+  --color-missing: #6b6b66;
+  --color-missing-bg: #f0f0ee;
+  --color-missing-border: #d8d8d3;
+
+  --color-notmet: #b3261e;
+  --color-notmet-bg: #fbeae9;
+  --color-notmet-border: #f0c6c3;
+
+  /* Distinct orange for "escalated / with medical director" audit-trail
+     status — must read as visually separate from both amber (ambiguous)
+     and red (not-met/failed) at a glance. */
+  --color-escalated: #c97a3d;
+  --color-escalated-bg: #fbf0e6;
+  --color-escalated-border: #ecceac;
+}
+
+/* Dark theme overrides. The toggle sets [data-theme] on <html> (and
+   persists it), defaulting to the system preference on first load — see
+   useTheme.js. Attribute-selector specificity beats Tailwind's plain
+   :root, so this overrides the @theme defaults above whenever present. */
+:root[data-theme="dark"] {
+  --color-brand: #6bb52e;
+  --color-brand-dark: #86cf49;
+  --color-brand-tint: #182a12;
+
+  --color-nurse: #6fa8dc;
+  --color-nurse-dark: #9cc4ea;
+  --color-nurse-tint: #14232f;
+
+  --color-ink: #ececea;
+  --color-ink-soft: #c2c1bb;
+  --color-ink-faint: #96958d;
+
+  --color-paper: #15161a;
+  --color-surface: #1e1f24;
+  --color-line: #34353b;
+
+  --color-met: #3ecf7e;
+  --color-met-bg: #12271b;
+  --color-met-border: #1f4a31;
+
+  --color-ambiguous: #e3a73f;
+  --color-ambiguous-bg: #2b2311;
+  --color-ambiguous-border: #4a3a15;
+
+  --color-missing: #a6a59e;
+  --color-missing-bg: #262622;
+  --color-missing-border: #3a3a35;
+
+  --color-notmet: #e5726a;
+  --color-notmet-bg: #2b1614;
+  --color-notmet-border: #4a231f;
+
+  --color-escalated: #e2965c;
+  --color-escalated-bg: #2b1d10;
+  --color-escalated-border: #4a3620;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Themed scrollbars — the browser default track is opaque light gray,
+   which reads as a jarring bright stripe against the dark theme's paper.
+   Referencing the same theme tokens as everything else means this stays
+   correct in both themes without a separate dark-mode override. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-line);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-faint);
+}
+
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-flip-in {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateY(-12deg) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateY(0deg) scale(1);
+  }
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop-in 180ms ease-out;
+}
+
+.animate-modal-flip {
+  animation: modal-flip-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+}

@@ -21,7 +21,7 @@ const PACKET_TARGETS = {
   },
 }
 
-const VIEWER_URL = '/packet-viewer.html'
+const VIEWER_URL = `${import.meta.env.BASE_URL}packet-viewer.html`
 
 function openViewer(query) {
   const width = Math.min(900, window.screen.availWidth - 80)

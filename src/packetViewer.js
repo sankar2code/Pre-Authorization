@@ -42,7 +42,7 @@ function highlightRects(items, viewport) {
 }
 
 async function main() {
-  const doc = await pdfjs.getDocument({ url: '/packet.pdf' }).promise
+  const doc = await pdfjs.getDocument({ url: `${import.meta.env.BASE_URL}packet.pdf` }).promise
   document.getElementById('sub').textContent = label
     ? `${label} — page ${targetPage} of ${doc.numPages}`
     : `${doc.numPages} pages`

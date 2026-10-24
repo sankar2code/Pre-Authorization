@@ -13,6 +13,10 @@
   --color-nurse: #2f6fb0;
   --color-nurse-dark: #1f4d80;
   --color-nurse-tint: #e8f1fa;
+  /* Filled blue buttons with white text: stays dark enough for contrast in
+     both themes, unlike --color-nurse, which lightens in dark mode. */
+  --color-nurse-solid: #2f6fb0;
+  --color-nurse-solid-hover: #255a91;
 
   --color-ink: #2c2c2a;
   --color-ink-soft: #5c5c58;

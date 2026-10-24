@@ -25,7 +25,7 @@ export const CURRENT_FLOW_DEFINITION = `flowchart TD
     class E teal`
 
 export const FUTURE_FLOW_DEFINITION = `flowchart TD
-    S0["Landing"] --> S1["Case Queue<br/><small>4 cases</small>"]
+    S0["Landing"] --> S1["Case Queue<br/><small>6 cases, 4 paths</small>"]
 
     S1 --> QA["Clean Approval"]
     S1 --> QB["John Doe"]
@@ -63,6 +63,7 @@ export const FUTURE_FLOW_DEFINITION = `flowchart TD
     CL6B --> DET
     MDR1 --> DET
     MDR2 --> DET
+    DET --> PP["Patient portal<br/><small>Live status, prep, costs, appeal</small>"]
 
     classDef gray fill:#F1EFE8,stroke:#888780,color:#2C2C2A
     classDef purple fill:#EEEDFE,stroke:#7F77DD,color:#26215C
@@ -77,4 +78,5 @@ export const FUTURE_FLOW_DEFINITION = `flowchart TD
     class APB,APC,CL6,CL6B teal
     class ESC1,ESC2,MDV1,MDV2,MDR1,MDR2 blue
     class F9 coral
-    class DET teal`
+    class DET teal
+    class PP blue`

@@ -157,7 +157,7 @@ function ReadAloud({ fmt, targetRef }) {
       onClick={toggle}
       aria-pressed={speaking}
       className={`flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition ${
-        speaking ? 'border-nurse bg-nurse text-white' : 'border-line bg-surface text-ink-soft hover:text-ink'
+        speaking ? 'border-nurse bg-nurse-solid text-white' : 'border-line bg-surface text-ink-soft hover:text-ink'
       }`}
     >
       {speaking ? <StopIcon className="h-3.5 w-3.5" /> : <SpeakerIcon className="h-3.5 w-3.5" />}
@@ -232,7 +232,7 @@ export default function PatientPortal({ caseData, rt, actions, onBack, initialTa
                     aria-pressed={lang === l.key}
                     title={l.label}
                     className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-                      lang === l.key ? 'bg-nurse text-white' : 'text-ink-faint hover:text-ink'
+                      lang === l.key ? 'bg-nurse-solid text-white' : 'text-ink-faint hover:text-ink'
                     }`}
                   >
                     {l.short}

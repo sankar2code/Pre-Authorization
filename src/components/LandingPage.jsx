@@ -23,7 +23,7 @@ import {
   HeartPulseIcon,
 } from './StepIcons'
 import { FlagIcon } from './AuditIcons'
-import { BoltIcon, StethoscopeIcon } from './OwnerIcons'
+import { BoltIcon, PersonIcon, StethoscopeIcon } from './OwnerIcons'
 import { CURRENT_FLOW_DEFINITION, FUTURE_FLOW_DEFINITION } from '../data/workflowDiagrams'
 
 function FlowIcon(props) {
@@ -183,6 +183,54 @@ const FUTURE_STEPS = [
   },
 ]
 
+// The whole product end to end, left to right, with who acts at each step.
+// Tones reuse the app's status colors: blue for the AI, nurse and patient
+// steps, orange for the medical director, green for the decision.
+const JOURNEY = [
+  {
+    icon: FaxIcon,
+    actor: "Doctor's office",
+    tone: 'routine',
+    title: 'Request submitted',
+    text: `The request and a ${PACKET_PAGES}-page clinical packet arrive by fax or portal.`,
+  },
+  {
+    icon: SparklesIcon,
+    actor: 'AI',
+    tone: 'accent',
+    title: 'Facts extracted and matched',
+    text: 'Key facts are pulled out and checked against NCD → LCD → payer policy → MCG, each cited to its page.',
+  },
+  {
+    icon: ListCheckIcon,
+    actor: 'UM nurse',
+    tone: 'accent',
+    title: 'Nurse reviews',
+    text: 'Verifies every criterion against the source sentence, then approves or sends one precise clarification.',
+  },
+  {
+    icon: StethoscopeIcon,
+    actor: 'Medical director',
+    tone: 'escalated',
+    title: 'Escalation if needed',
+    text: 'Two or more gaps go to the MD with a structured brief. Only the MD can deny.',
+  },
+  {
+    icon: FlagIcon,
+    actor: 'Health plan',
+    tone: 'success',
+    title: 'Decision on the clock',
+    text: '72 hours expedited, 7 days standard. Every step lands in the audit trail.',
+  },
+  {
+    icon: PersonIcon,
+    actor: 'Patient',
+    tone: 'accent',
+    title: 'Patient follows along',
+    text: 'Live status, what’s pending, prep steps, costs and payment — or the reason and appeal rights.',
+  },
+]
+
 export default function LandingPage({ onEnter, onPatientView, theme }) {
   const [view, setView] = useState('current')
   const [showDiagram, setShowDiagram] = useState(false)
@@ -190,28 +238,109 @@ export default function LandingPage({ onEnter, onPatientView, theme }) {
   const otherPaths = isCurrent ? CURRENT_OTHER_PATHS : FUTURE_OTHER_PATHS
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col px-6 py-6 lg:h-dvh lg:justify-center lg:overflow-hidden lg:py-4">
+    <div className="mx-auto flex max-w-5xl flex-col px-4 pb-12 pt-16 sm:px-6 lg:pt-10">
       <div className="flex justify-center">
         <div className="inline-flex items-center gap-3 rounded-full border border-brand/25 bg-gradient-to-r from-brand-tint via-surface to-brand-tint py-1.5 pl-1.5 pr-6 shadow-sm">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-white shadow-md shadow-brand/30">
             <ClipboardIcon className="h-[18px] w-[18px]" />
           </span>
-          <p className="bg-gradient-to-r from-brand-dark to-brand bg-clip-text text-[13px] font-semibold uppercase tracking-[0.22em] text-transparent sm:text-sm">
+          <p className="bg-gradient-to-r from-brand-dark to-brand bg-clip-text text-[11px] font-semibold uppercase tracking-[0.22em] text-transparent sm:text-sm">
             Prior Authorization Decision Support
           </p>
         </div>
       </div>
-      <h1 className="mt-4 text-center text-2xl font-semibold text-ink">
-        A working prototype for UM nurse review
+      <h1 className="mt-4 text-center text-2xl font-semibold text-ink sm:text-[28px]">
+        From faxed packet to patient decision, end to end
       </h1>
       <p className="mx-auto mt-2 max-w-3xl text-center text-sm text-ink-soft">
-        This demo follows five prior-authorization cases: a clean approval, two provider
-        clarifications (one expedited), a medical-director escalation, and a packet that can't be parsed. In each
-        one the tool extracts the facts and checks them against a criteria list, and the nurse or
-        medical director still makes the decision.
+        A working prototype of AI-assisted prior authorization. The UM nurse reviews AI-extracted
+        evidence where every fact links to its page in the packet, and a person always makes the
+        decision. The patient follows the same case live, in plain language.
       </p>
 
-      <div className="mt-4 flex justify-center">
+      <section className="mt-6 rounded-lg border border-line bg-surface p-4" aria-labelledby="journey-title">
+        <div className="flex items-center justify-between gap-3">
+          <p id="journey-title" className="text-xs font-medium uppercase tracking-wide text-ink-faint">
+            How a request moves through the app
+          </p>
+          <button
+            onClick={() => {
+              setView('future')
+              setShowDiagram(true)
+            }}
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-ink-faint transition hover:border-brand/40 hover:text-brand-dark"
+            title="View the full flow as a diagram"
+          >
+            <FlowIcon className="h-3.5 w-3.5" />
+            Flow diagram
+          </button>
+        </div>
+        <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3">
+          {JOURNEY.map((step, i) => (
+            <li key={step.title} className="relative flex gap-3 lg:flex-col lg:gap-2">
+              {i < JOURNEY.length - 1 && (
+                <span aria-hidden className="absolute left-[44px] right-[-6px] top-4 hidden h-px bg-line lg:block" />
+              )}
+              <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${TONE[step.tone]}`}>
+                <step.icon className="h-4 w-4" />
+              </span>
+              <span>
+                <span className="block text-[11px] font-medium uppercase tracking-wide text-ink-faint">
+                  {i + 1} · {step.actor}
+                </span>
+                <span className="mt-0.5 block text-sm font-semibold leading-snug text-ink">{step.title}</span>
+                <span className="mt-1 block text-[13px] leading-snug text-ink-soft">{step.text}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <button
+          onClick={onEnter}
+          className="group flex flex-col rounded-lg border border-brand/30 bg-brand-tint p-4 text-left transition hover:border-brand hover:shadow-sm"
+        >
+          <span className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white">
+              <ListCheckIcon className="h-4 w-4" />
+            </span>
+            <span className="text-base font-semibold text-brand-dark">UM nurse view</span>
+          </span>
+          <span className="mt-2 text-sm text-ink-soft">
+            Work the case queue: six cases covering a clean approval, two provider clarifications
+            (one expedited), a medical-director escalation, a resolved case and an unreadable
+            packet.
+          </span>
+          <span className="mt-3 inline-flex w-fit items-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition group-hover:bg-brand-dark">
+            Open UM nurse view →
+          </span>
+        </button>
+        <button
+          onClick={onPatientView}
+          className="group flex flex-col rounded-lg border border-nurse/30 bg-nurse-tint p-4 text-left transition hover:border-nurse hover:shadow-sm"
+        >
+          <span className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-nurse-solid text-white">
+              <PersonIcon className="h-4 w-4" />
+            </span>
+            <span className="text-base font-semibold text-nurse-dark">Patient view</span>
+          </span>
+          <span className="mt-2 text-sm text-ink-soft">
+            See the same cases as the member: where the request stands, what’s pending, how to
+            prepare, what it will cost, and how to appeal. In English or Spanish.
+          </span>
+          <span className="mt-3 inline-flex w-fit items-center rounded-md bg-nurse-solid px-4 py-2 text-sm font-medium text-white transition group-hover:bg-nurse-solid-hover">
+            Open patient view →
+          </span>
+        </button>
+      </div>
+      <p className="mt-2 text-center text-xs text-ink-faint">
+        Try both: act on a case as the nurse, then open the patient view and watch it update.
+      </p>
+
+      <h2 className="mt-10 text-center text-lg font-semibold text-ink">Why it matters</h2>
+      <div className="mt-3 flex justify-center">
         <div className="inline-flex rounded-full border border-line bg-paper p-1">
           <button
             onClick={() => setView('current')}
@@ -303,21 +432,6 @@ export default function LandingPage({ onEnter, onPatientView, theme }) {
           </ul>
         </div>
         </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap justify-center gap-3">
-        <button
-          onClick={onEnter}
-          className="rounded-md bg-brand px-6 py-3 text-sm font-medium text-white transition hover:bg-brand-dark"
-        >
-          Enter the Prototype →
-        </button>
-        <button
-          onClick={onPatientView}
-          className="rounded-md border border-nurse/40 bg-nurse-tint px-6 py-3 text-sm font-medium text-nurse-dark transition hover:border-nurse"
-        >
-          Patient view →
-        </button>
       </div>
 
       <Modal

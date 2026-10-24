@@ -35,7 +35,7 @@ function Assistant({ fmt, caseData, rt, portal, onWantCallback }) {
         <div ref={listRef} className="mt-3 max-h-80 space-y-2 overflow-y-auto rounded-lg border border-line bg-paper p-3" aria-live="polite">
           {messages.map((m, i) =>
             m.role === 'user' ? (
-              <p key={i} className="ml-auto w-fit max-w-[85%] rounded-lg rounded-br-sm bg-nurse px-3 py-2 text-sm text-white">
+              <p key={i} className="ml-auto w-fit max-w-[85%] rounded-lg rounded-br-sm bg-nurse-solid px-3 py-2 text-sm text-white">
                 {m.text}
               </p>
             ) : (

@@ -1,6 +1,8 @@
+import { PACKET_PAGES } from './packet'
+
 export const CURRENT_FLOW_DEFINITION = `flowchart TD
-    A["Packet arrives<br/><small>14-page fax or portal submission</small>"]
-    B["Nurse reads manually<br/><small>All 14 pages, hunting for facts</small>"]
+    A["Packet arrives<br/><small>${PACKET_PAGES}-page fax or portal submission</small>"]
+    B["Nurse reads manually<br/><small>All ${PACKET_PAGES} pages, hunting for facts</small>"]
     C["Cross-references criteria<br/><small>NCD, LCD, policy, MCG — by hand</small>"]
     D{"All criteria clearly documented?"}
     E["Nurse approves<br/><small>Clear-cut case</small>"]

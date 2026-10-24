@@ -1,3 +1,4 @@
+import { PACKET_PAGES } from '../data/packet'
 import Badge from './Badge'
 import { criterionLabel } from '../data/domain'
 
@@ -24,7 +25,7 @@ export default function EscalationHandoff({ caseData, criteria, onContinue }) {
         </ul>
         <p className="mt-3 text-xs text-ink-faint">
           The medical director receives this structured extraction and checklist — not the raw
-          14-page packet.
+          {PACKET_PAGES}-page packet.
         </p>
       </div>
 

@@ -60,11 +60,36 @@ function initialRuntime(caseData) {
     determination: null, // { outcome, resolvedVia, resolvedBy }
     closure: null, // { summary, comment } — administrative close (provider notified), never a determination
     audit: [],
+    patient: initialPatientState(),
     // Illustrative cases (e.g. Emily Watson) can seed a pre-resolved state
     // so the Case Queue has a realistic Closed case without replaying it.
     ...caseData.seedRuntime,
+    ...(caseData.seedRuntime?.patient && {
+      patient: { ...initialPatientState(), ...caseData.seedRuntime.patient },
+    }),
   }
 }
+
+// What the patient has done in their portal. Lives on the same case
+// runtime as everything else, so the nurse side and Reports see it.
+function initialPatientState() {
+  return {
+    viewed: false,
+    decision: null, // 'accepted' | 'declined'
+    payment: null, // { when: 'now', method, amount, ref } | { when: 'later', option: 'service' | months, monthly, amount }
+    decline: null, // { reason, note }
+    assistance: null, // { household, income, result }
+    appeal: null, // { requestedAtMs, stage: 'requested' | 'scheduled' | 'completed', scheduledForMs }
+    callbacks: [], // { id, who, topic, time, atMs }
+    checklist: {}, // itemId -> true
+    notify: { sms: true, email: false },
+    notifSeen: 0,
+  }
+}
+
+let patientEventCounter = 0
+let paymentRefCounter = 40217
+let callbackCounter = 310
 
 function buildInitialState() {
   const state = {}
@@ -88,7 +113,7 @@ export function useCaseRuntime() {
         ...prev,
         [caseId]: {
           ...prev[caseId],
-          audit: [...prev[caseId].audit, { at: timeNow(), label, ...meta, status }],
+          audit: [...prev[caseId].audit, { at: timeNow(), atMs: Date.now(), label, ...meta, status }],
         },
       }
     })
@@ -353,6 +378,129 @@ export function useCaseRuntime() {
     [patch, log],
   )
 
+  // ---- Patient portal actions. Each one that matters to the care team is
+  // also logged to the case's audit trail, under its own group so it shows
+  // as its own row, tagged with patientEvent so the portal can phrase it
+  // in the patient's language.
+  const patchPatient = useCallback(
+    (caseId, partial) => {
+      patch(caseId, (prev) => ({
+        patient: { ...prev.patient, ...(typeof partial === 'function' ? partial(prev.patient) : partial) },
+      }))
+    },
+    [patch],
+  )
+
+  const logPatient = useCallback(
+    (caseId, label, patientEvent) => {
+      patientEventCounter += 1
+      log(caseId, `Patient: ${label}`, { group: `patient-${patientEventCounter}`, patientEvent })
+    },
+    [log],
+  )
+
+  const patientView = useCallback(
+    (caseId) => {
+      if (runtime[caseId].patient.viewed) return
+      patchPatient(caseId, { viewed: true })
+    },
+    [runtime, patchPatient],
+  )
+
+  const patientAccept = useCallback(
+    (caseId, payment) => {
+      const ref = payment.when === 'now' ? `PAY-${(paymentRefCounter += 1)}` : null
+      const stored = { ...payment, ref }
+      patchPatient(caseId, { decision: 'accepted', payment: stored, decline: null })
+      if (payment.when === 'now') {
+        logPatient(caseId, `accepted cost estimate and paid $${payment.amount.toFixed(2)} (${payment.method === 'hsa' ? 'HSA/FSA' : 'card'}, ${ref})`, { type: 'accepted_now', ...stored })
+      } else {
+        const how = payment.option === 'service' ? 'pay at time of service' : `${payment.option}-month payment plan`
+        logPatient(caseId, `accepted cost estimate — ${how}`, { type: 'accepted_later', ...stored })
+      }
+    },
+    [patchPatient, logPatient],
+  )
+
+  const patientDecline = useCallback(
+    (caseId, { reason, note }) => {
+      patchPatient(caseId, { decision: 'declined', decline: { reason, note }, payment: null })
+      logPatient(caseId, `declined the request (${reason}${note ? `: "${note}"` : ''}) — provider office to contact patient`, { type: 'declined', reason })
+    },
+    [patchPatient, logPatient],
+  )
+
+  const patientReopen = useCallback(
+    (caseId) => {
+      patchPatient(caseId, { decision: null, payment: null, decline: null })
+      logPatient(caseId, 'reopened cost estimate', { type: 'reopened' })
+    },
+    [patchPatient, logPatient],
+  )
+
+  const patientAssistance = useCallback(
+    (caseId, assistance) => {
+      patchPatient(caseId, { assistance })
+      logPatient(caseId, `checked financial assistance eligibility — ${assistance.result}`, { type: 'assistance' })
+    },
+    [patchPatient, logPatient],
+  )
+
+  const patientRequestAppeal = useCallback(
+    (caseId) => {
+      patchPatient(caseId, { appeal: { requestedAtMs: Date.now(), stage: 'requested', scheduledForMs: null } })
+      logPatient(caseId, 'asked provider to appeal the denial; peer-to-peer review requested', { type: 'appeal' })
+    },
+    [patchPatient, logPatient],
+  )
+
+  // Simulated progression of the doctor-to-doctor review after an appeal
+  // request: requested -> scheduled -> completed.
+  const advancePeerToPeer = useCallback(
+    (caseId, stage) => {
+      patchPatient(caseId, (p) => ({
+        appeal: {
+          ...p.appeal,
+          stage,
+          scheduledForMs: stage === 'scheduled' ? Date.now() + 2 * 24 * 60 * 60 * 1000 : p.appeal.scheduledForMs,
+        },
+      }))
+      logPatient(caseId, stage === 'scheduled' ? 'peer-to-peer call scheduled with medical director' : 'peer-to-peer call completed', { type: stage === 'scheduled' ? 'p2p_scheduled' : 'p2p_completed' })
+    },
+    [patchPatient, logPatient],
+  )
+
+  const patientCallback = useCallback(
+    (caseId, { who, topic, time }) => {
+      callbackCounter += 1
+      const req = { id: `CB-${callbackCounter}`, who, topic, time, atMs: Date.now() }
+      patchPatient(caseId, (p) => ({ callbacks: [...p.callbacks, req] }))
+      logPatient(caseId, `requested a callback from ${who === 'office' ? 'the provider office' : 'the health plan'} about ${topic} (${time})`, { type: 'callback', who })
+    },
+    [patchPatient, logPatient],
+  )
+
+  const togglePatientChecklist = useCallback(
+    (caseId, itemId) => {
+      patchPatient(caseId, (p) => ({ checklist: { ...p.checklist, [itemId]: !p.checklist[itemId] } }))
+    },
+    [patchPatient],
+  )
+
+  const setPatientNotify = useCallback(
+    (caseId, notify) => {
+      patchPatient(caseId, { notify })
+    },
+    [patchPatient],
+  )
+
+  const markPatientNotificationsSeen = useCallback(
+    (caseId, count) => {
+      patchPatient(caseId, { notifSeen: count })
+    },
+    [patchPatient],
+  )
+
   return {
     runtime,
     markRead,
@@ -368,5 +516,16 @@ export function useCaseRuntime() {
     escalate,
     assumeMdOwnership,
     determine,
+    patientView,
+    patientAccept,
+    patientDecline,
+    patientReopen,
+    patientAssistance,
+    patientRequestAppeal,
+    advancePeerToPeer,
+    patientCallback,
+    togglePatientChecklist,
+    setPatientNotify,
+    markPatientNotificationsSeen,
   }
 }

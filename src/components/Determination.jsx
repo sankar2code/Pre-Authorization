@@ -7,7 +7,7 @@ const PATH_COPY = {
   escalation: 'Resolved via medical director escalation.',
 }
 
-export default function Determination({ caseData, criteria, determination, onBackToQueue }) {
+export default function Determination({ caseData, criteria, determination, onBackToQueue, onViewAsPatient }) {
   const isApproved = determination.outcome === 'Approved'
 
   return (
@@ -43,12 +43,22 @@ export default function Determination({ caseData, criteria, determination, onBac
         ))}
       </div>
 
-      <button
-        onClick={onBackToQueue}
-        className="rounded-md border border-line px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-paper"
-      >
-        ← Back to Queue
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={onBackToQueue}
+          className="rounded-md border border-line px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-paper"
+        >
+          ← Back to Queue
+        </button>
+        {onViewAsPatient && (
+          <button
+            onClick={onViewAsPatient}
+            className="rounded-md border border-nurse/40 bg-nurse-tint px-5 py-2.5 text-sm font-medium text-nurse-dark transition hover:border-nurse"
+          >
+            See what the patient sees →
+          </button>
+        )}
+      </div>
     </div>
   )
 }

@@ -73,7 +73,8 @@ export default function AuditTrailTimeline({ audit }) {
         const meta = isTimelineEntryDenied(entry)
           ? { ...CASE_STATUS_META[entry.status], pill: DENIED_PILL }
           : CASE_STATUS_META[entry.status]
-        const Icon = GROUP_ICON[entry.group]
+        // Patient portal actions each get their own group (patient-1, patient-2, …).
+        const Icon = GROUP_ICON[entry.group] ?? (entry.group.startsWith('patient-') ? PersonIcon : null)
         return (
           <li key={entry.key} className="relative">
             <span

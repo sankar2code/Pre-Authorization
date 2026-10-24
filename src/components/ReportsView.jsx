@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PageHeader from './PageHeader'
+import { patientEngagement } from '../data/patientDomain'
 
 // Shared time-saved baseline (directional). Team Impact's "~15 min/case" is
 // MANUAL_MIN_PER_CASE - TOOL_MIN_PER_CASE.
@@ -12,7 +13,91 @@ const NURSE_CASES_REVIEWED = 6
 const TABS = [
   { key: 'team', label: 'Team Impact' },
   { key: 'you', label: 'Your Impact' },
+  { key: 'patients', label: 'Patient Engagement' },
 ]
+
+const DECLINE_LABEL = {
+  cost: 'Cost too high',
+  opinion: 'Wants a second opinion',
+  timing: 'Timing',
+  other: 'Other',
+}
+
+function pct(n, d) {
+  return d ? `${Math.round((n / d) * 100)}%` : '—'
+}
+
+// Live from this session's runtime, unlike the illustrative tabs: every
+// number moves as patients act in their portal.
+function PatientEngagement({ runtime }) {
+  const m = patientEngagement(runtime)
+  const declineRows = Object.entries(m.declineReasons)
+  return (
+    <div className="space-y-6">
+      <div className="rounded-lg border border-nurse/30 bg-nurse-tint px-4 py-4">
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-semibold text-nurse-dark">{pct(m.accepted, m.approved)}</p>
+          <p className="text-sm text-nurse-dark/80">of approved patients accepted their cost estimate</p>
+        </div>
+        <div className="my-3 border-t border-nurse/20" />
+        <p className="text-xs text-nurse-dark/80">
+          {m.accepted} accepted of {m.approved} approved · {m.declined} declined ·{' '}
+          {m.approved - m.accepted - m.declined} still deciding
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg border border-line bg-surface px-4 py-4">
+          <p className="text-2xl font-semibold text-ink">
+            {m.viewed} <span className="text-base font-normal text-ink-faint">/ {m.cases}</span>
+          </p>
+          <p className="mt-1 text-sm text-ink-soft">Patients who opened their portal</p>
+        </div>
+        <div className="rounded-lg border border-met-border bg-met-bg px-4 py-4">
+          <p className="text-2xl font-semibold text-met">
+            {m.payNow} <span className="text-base font-normal text-met/70">now</span> · {m.payLater}{' '}
+            <span className="text-base font-normal text-met/70">later</span>
+          </p>
+          <p className="mt-1 text-sm text-met/80">How accepting patients chose to pay</p>
+        </div>
+        <div className="rounded-lg border border-ambiguous-border bg-ambiguous-bg px-4 py-4">
+          <p className="text-2xl font-semibold text-ambiguous">{m.callbacks}</p>
+          <p className="mt-1 text-sm text-ambiguous/80">Callback requests</p>
+        </div>
+        <div className="rounded-lg border border-notmet-border bg-notmet-bg px-4 py-4">
+          <p className="text-2xl font-semibold text-notmet">{m.appeals}</p>
+          <p className="mt-1 text-sm text-notmet/80">Appeal requests after a denial</p>
+        </div>
+        <div className="col-span-2 rounded-lg border border-line bg-surface px-4 py-4">
+          <p className="text-sm font-medium text-ink">Declines by reason</p>
+          {m.declined === 0 ? (
+            <p className="mt-1 text-sm text-ink-faint">No patient has declined yet.</p>
+          ) : (
+            <ul className="mt-2 space-y-1.5">
+              {declineRows.map(([key, n]) => (
+                <li key={key} className="flex items-center gap-3 text-sm">
+                  <span className="w-44 shrink-0 text-ink-soft">{DECLINE_LABEL[key]}</span>
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-paper">
+                    <span className="block h-full rounded-full bg-nurse" style={{ width: pct(n, m.declined) }} />
+                  </span>
+                  <span className="w-6 text-right tabular-nums text-ink">{n}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-ink-faint">
+            {m.assistanceChecks} financial-assistance check{m.assistanceChecks === 1 ? '' : 's'} run
+          </p>
+        </div>
+      </div>
+
+      <p className="text-xs text-ink-faint">
+        Live for this session: counts update as patients act in the patient view. One closed case
+        (Emily Watson) is seeded with an accepted payment plan.
+      </p>
+    </div>
+  )
+}
 
 function TeamImpact({ closedAfterNotice }) {
   return (
@@ -130,7 +215,7 @@ export default function ReportsView({ runtime, onBack }) {
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
       <div className="flex items-end justify-between">
-        <PageHeader title="Reports" subtitle="Illustrative only — not a live metric." />
+        <PageHeader title="Reports" subtitle={activeTab === 'patients' ? 'Live for this session.' : 'Illustrative only — not a live metric.'} />
         <button
           onClick={onBack}
           className="rounded-md border border-line px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-paper"
@@ -155,7 +240,9 @@ export default function ReportsView({ runtime, onBack }) {
         ))}
       </div>
 
-      {activeTab === 'team' ? <TeamImpact closedAfterNotice={closedAfterNotice} /> : <YourImpact />}
+      {activeTab === 'team' && <TeamImpact closedAfterNotice={closedAfterNotice} />}
+      {activeTab === 'you' && <YourImpact />}
+      {activeTab === 'patients' && <PatientEngagement runtime={runtime} />}
     </div>
   )
 }

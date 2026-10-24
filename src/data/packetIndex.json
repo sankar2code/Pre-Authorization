@@ -1,0 +1,179 @@
+{
+  "totalPages": 106,
+  "sections": [
+    {
+      "key": "cover",
+      "title": "Fax cover sheet",
+      "start": 1,
+      "end": 1
+    },
+    {
+      "key": "request",
+      "title": "Prior authorization request & eligibility",
+      "start": 2,
+      "end": 5
+    },
+    {
+      "key": "pcp",
+      "title": "Primary care records & referral",
+      "start": 6,
+      "end": 15
+    },
+    {
+      "key": "surgical",
+      "title": "Surgical consultation & spine follow-up",
+      "start": 16,
+      "end": 23
+    },
+    {
+      "key": "imaging",
+      "title": "Imaging & electrodiagnostic studies",
+      "start": 24,
+      "end": 30
+    },
+    {
+      "key": "pt",
+      "title": "Physical therapy records",
+      "start": 31,
+      "end": 61
+    },
+    {
+      "key": "pain",
+      "title": "Pain management & injection records",
+      "start": 62,
+      "end": 68
+    },
+    {
+      "key": "hp",
+      "title": "History & physical",
+      "start": 69,
+      "end": 71
+    },
+    {
+      "key": "cardiology",
+      "title": "Cardiology records & clearance",
+      "start": 72,
+      "end": 80
+    },
+    {
+      "key": "endo",
+      "title": "Endocrinology",
+      "start": 81,
+      "end": 82
+    },
+    {
+      "key": "anesthesia",
+      "title": "Anesthesia pre-operative evaluation",
+      "start": 83,
+      "end": 86
+    },
+    {
+      "key": "labs",
+      "title": "Laboratory results",
+      "start": 87,
+      "end": 92
+    },
+    {
+      "key": "meds",
+      "title": "Medication reconciliation",
+      "start": 93,
+      "end": 93
+    },
+    {
+      "key": "orders",
+      "title": "Pre-operative orders & post-operative plan",
+      "start": 94,
+      "end": 97
+    },
+    {
+      "key": "consents",
+      "title": "Consents, education & nursing assessment",
+      "start": 98,
+      "end": 105
+    },
+    {
+      "key": "attestation",
+      "title": "Provider attestation",
+      "start": 106,
+      "end": 106
+    }
+  ],
+  "anchors": {
+    "conservative": {
+      "page": 2,
+      "quote": "physical therapy x 12 weeks, epidural steroid injection x2"
+    },
+    "benefits": {
+      "page": 4,
+      "quote": "Inpatient Benefit:"
+    },
+    "procedure": {
+      "page": 16,
+      "quote": "Recommend open lumbar spinal fusion, L4-L5, with posterior instrumentation."
+    },
+    "mri": {
+      "page": 26,
+      "quote": "Grade 1 anterolisthesis of L4 on L5 with severe bilateral foraminal stenosis."
+    },
+    "emg": {
+      "page": 28,
+      "quote": "Findings consistent with chronic right L5 radiculopathy with ongoing denervation."
+    },
+    "pt": {
+      "page": 59,
+      "quote": "Patient completed 24 visits over 12 weeks with minimal functional improvement."
+    },
+    "esi": {
+      "page": 68,
+      "quote": "Patient reports less than 20% relief lasting approximately 10 days following the second injection."
+    },
+    "comorbidities": {
+      "page": 69,
+      "quote": "Congestive heart failure, HFrEF, EF 40% (echo 07/2026)"
+    },
+    "meds": {
+      "page": 69,
+      "quote": "Metformin 1000mg BID, Glipizide 5mg daily"
+    },
+    "functional": {
+      "page": 70,
+      "quote": "Patient ambulates with a single-point cane due to pain, otherwise independent."
+    },
+    "anesthesia": {
+      "page": 71,
+      "quote": "Anesthesia pre-op evaluation completed 09/23/2026, cleared for surgery with standard cardiac monitoring intra-operatively."
+    },
+    "clearance_1": {
+      "page": 77,
+      "quote": "Pre-operative cardiac risk assessment"
+    },
+    "nyha": {
+      "page": 77,
+      "quote": "NYHA Class II symptoms, stable on current guideline-directed medical therapy"
+    },
+    "clearance": {
+      "page": 78,
+      "quote": "Patient is cleared for surgery from a cardiac standpoint."
+    },
+    "labs_pat": {
+      "page": 87,
+      "quote": "Laboratory Results"
+    },
+    "labs": {
+      "page": 87,
+      "quote": "Mild anemia, consistent with chronic disease."
+    },
+    "los": {
+      "page": 95,
+      "quote": "Patient anticipated to require inpatient admission post-operatively for pain control, mobilization, and cardiac monitoring"
+    },
+    "dvt": {
+      "page": 95,
+      "quote": "Sequential compression devices + subcutaneous heparin per protocol, starting post-operative day 0."
+    },
+    "attestation": {
+      "page": 106,
+      "quote": "the requested inpatient admission for open lumbar spinal fusion (L4-L5) is medically necessary"
+    }
+  }
+}

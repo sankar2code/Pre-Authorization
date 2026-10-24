@@ -1,5 +1,19 @@
 // Hardcoded mock case data. Nothing here hits a network — this is a
 // prototype that simulates extraction + review, not a production pipeline.
+import { PACKET_PAGES, pageRef } from './packet'
+
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+// A seeded audit timestamp `daysAgo` days back, in the same display format
+// as live entries, so seeded history lines up with the portal's dates.
+function seededAt(daysAgo, hour, minute) {
+  const d = new Date()
+  d.setDate(d.getDate() - daysAgo)
+  d.setHours(hour, minute, 0, 0)
+  const date = `${MONTH_ABBR[d.getMonth()]}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' })
+  return { at: `${date}, ${time}`, atMs: d.getTime() }
+}
 
 export const CASES = [
   {
@@ -10,7 +24,7 @@ export const CASES = [
     summary: 'Elective TKA, all criteria clearly met',
     procedure: 'Total knee arthroplasty, right knee',
     requestedSetting: 'Inpatient',
-    packetPages: 14,
+    packetPages: PACKET_PAGES,
     parseFailed: false,
     // CMS decision clock: standard = 7 days, expedited = 72 hours.
     cmsClock: { type: 'standard', daysRemaining: 6 },
@@ -18,22 +32,22 @@ export const CASES = [
       {
         label: 'Procedure',
         value: 'Right total knee arthroplasty (primary, elective)',
-        doc: 'Surgical Consult, p. 3',
+        doc: pageRef('Surgical Consult', 'procedure'),
       },
       {
         label: 'Comorbidities',
         value: 'Morbid obesity (BMI 42.1); obstructive sleep apnea, on home CPAP',
-        doc: 'History & Physical, p. 5',
+        doc: pageRef('History & Physical', 'comorbidities'),
       },
       {
         label: 'Clearance',
         value: 'Anesthesia pre-op clearance on file, signed 09/12/2026',
-        doc: 'Pre-Op Clearance, p. 9',
+        doc: pageRef('Pre-Op Clearance', 'clearance'),
       },
       {
         label: 'Length of Stay',
         value: 'Surgeon order: anticipate 2-midnight admission for mobility and pain control',
-        doc: 'Surgeon Orders, p. 11',
+        doc: pageRef('Surgeon Orders', 'los'),
       },
     ],
     criteria: [
@@ -41,7 +55,7 @@ export const CASES = [
         id: 'procedure',
         status: 'met',
         quote: 'Op note: right total knee arthroplasty, primary, elective.',
-        source: 'Surgical Consult, p. 3',
+        source: pageRef('Surgical Consult', 'procedure'),
         reasoning:
           'Procedure is on the inpatient-appropriate list for elective joint replacement.',
       },
@@ -49,7 +63,7 @@ export const CASES = [
         id: 'comorbidities',
         status: 'met',
         quote: 'H&P: BMI 42.1; obstructive sleep apnea on home CPAP.',
-        source: 'History & Physical, p. 5',
+        source: pageRef('History & Physical', 'comorbidities'),
         reasoning:
           'Documented comorbidities elevate perioperative risk, supporting inpatient monitoring.',
       },
@@ -57,14 +71,14 @@ export const CASES = [
         id: 'clearance',
         status: 'met',
         quote: 'Anesthesia Pre-Op Clearance, signed 09/12/2026.',
-        source: 'Pre-Op Clearance, p. 9',
+        source: pageRef('Pre-Op Clearance', 'clearance'),
         reasoning: 'Clearance is on file and within the required 30-day window.',
       },
       {
         id: 'los',
         status: 'met',
         quote: "Surgeon's order: \"Anticipate 2-midnight admission for mobility and pain control.\"",
-        source: 'Surgeon Orders, p. 11',
+        source: pageRef('Surgeon Orders', 'los'),
         reasoning: 'Documented length of stay meets the 2-midnight inpatient threshold.',
       },
     ],
@@ -77,7 +91,7 @@ export const CASES = [
     summary: 'Spinal fusion, LOS not explicitly documented',
     procedure: 'Open lumbar spinal fusion, L4–L5',
     requestedSetting: 'Inpatient',
-    packetPages: 14,
+    packetPages: PACKET_PAGES,
     parseFailed: false,
     // CMS decision clock: standard = 7 days, expedited = 72 hours.
     cmsClock: { type: 'expedited', hoursRemaining: 31 },
@@ -85,23 +99,23 @@ export const CASES = [
       {
         label: 'Procedure',
         value: 'Open posterior lumbar spinal fusion, L4–L5',
-        doc: 'Surgical Consult, p. 2',
+        doc: pageRef('Surgical Consult', 'procedure'),
       },
       {
         label: 'Comorbidities',
         value: 'Heart failure, LVEF 40%; Type 2 diabetes mellitus',
-        doc: 'History & Physical, p. 4',
+        doc: pageRef('History & Physical', 'comorbidities'),
       },
       {
         label: 'Clearance',
         value: 'Cardiology clearance on file, dated 09/10/2026',
-        doc: 'Cardiology Clearance, p. 8',
+        doc: pageRef('Cardiology Clearance', 'clearance'),
       },
       {
         label: 'Length of Stay',
         value:
           'Surgeon expects a multi-day stay for pain control and mobilization. Exact length of stay not documented.',
-        doc: 'Surgeon Orders, p. 10',
+        doc: pageRef('Surgeon Orders', 'los'),
       },
     ],
     criteria: [
@@ -109,21 +123,21 @@ export const CASES = [
         id: 'procedure',
         status: 'met',
         quote: 'Op note: open posterior lumbar fusion, L4–L5.',
-        source: 'Surgical Consult, p. 2',
+        source: pageRef('Surgical Consult', 'procedure'),
         reasoning: 'Procedure is on the inpatient-appropriate list for spinal fusion.',
       },
       {
         id: 'comorbidities',
         status: 'met',
         quote: 'H&P: LVEF 40%, Type 2 diabetes mellitus.',
-        source: 'History & Physical, p. 4',
+        source: pageRef('History & Physical', 'comorbidities'),
         reasoning: 'Cardiac and endocrine comorbidities support inpatient monitoring.',
       },
       {
         id: 'clearance',
         status: 'met',
         quote: 'Cardiology clearance note, dated 09/10/2026.',
-        source: 'Cardiology Clearance, p. 8',
+        source: pageRef('Cardiology Clearance', 'clearance'),
         reasoning: 'Cardiology clearance on file supports surgical readiness given LVEF 40%.',
       },
       {
@@ -131,7 +145,7 @@ export const CASES = [
         status: 'ambiguous',
         quote:
           'Surgeon expects a multi-day stay for pain control and mobilization. Exact length of stay not documented.',
-        source: 'Surgeon Orders, p. 10',
+        source: pageRef('Surgeon Orders', 'los'),
         reasoning:
           '"Multi-day" does not specify a midnight count. Policy requires an explicit expectation of 2 or more midnights.',
         clarificationQuestion:
@@ -150,7 +164,7 @@ export const CASES = [
     summary: 'Cholecystectomy converted to open, conflicting comorbidity notes',
     procedure: 'Laparoscopic cholecystectomy, converted to open',
     requestedSetting: 'Inpatient',
-    packetPages: 14,
+    packetPages: PACKET_PAGES,
     parseFailed: false,
     // CMS decision clock: standard = 7 days, expedited = 72 hours.
     cmsClock: { type: 'standard', daysRemaining: 4 },
@@ -158,23 +172,23 @@ export const CASES = [
       {
         label: 'Procedure',
         value: 'Laparoscopic cholecystectomy converted to open due to intraoperative bleeding',
-        doc: 'Operative Report, p. 6',
+        doc: pageRef('Operative Report', 'procedure'),
       },
       {
         label: 'Comorbidities',
         value:
           'H&P states "no significant past medical history"; anesthesia pre-op note states "history of cirrhosis, Child-Pugh Class B"',
-        doc: 'History & Physical, p. 4 / Anesthesia Note, p. 7',
+        doc: `${pageRef('History & Physical', 'comorbidities')} / ${pageRef('Anesthesia Note', 'anesthesia')}`,
       },
       {
         label: 'Clearance',
         value: 'Hepatology clearance letter present, missing signature and date',
-        doc: 'Hepatology Clearance, p. 9',
+        doc: pageRef('Hepatology Clearance', 'clearance'),
       },
       {
         label: 'Length of Stay',
         value: 'Surgeon note: plan for minimum 2-midnight stay given intraoperative complication',
-        doc: 'Surgeon Orders, p. 12',
+        doc: pageRef('Surgeon Orders', 'los'),
       },
     ],
     criteria: [
@@ -183,7 +197,7 @@ export const CASES = [
         status: 'met',
         quote:
           'Op note: laparoscopic cholecystectomy converted to open due to intraoperative bleeding.',
-        source: 'Operative Report, p. 6',
+        source: pageRef('Operative Report', 'procedure'),
         reasoning: 'Converted open procedure is on the inpatient-appropriate list.',
       },
       {
@@ -191,7 +205,7 @@ export const CASES = [
         status: 'ambiguous',
         quote:
           'H&P states "no significant past medical history"; anesthesia pre-op note states "history of cirrhosis, Child-Pugh Class B."',
-        source: 'History & Physical, p. 4 / Anesthesia Note, p. 7',
+        source: `${pageRef('History & Physical', 'comorbidities')} / ${pageRef('Anesthesia Note', 'anesthesia')}`,
         reasoning:
           'Two source documents conflict on comorbidity status — risk profile cannot be confirmed without reconciliation.',
         clarificationQuestion:
@@ -205,7 +219,7 @@ export const CASES = [
         id: 'clearance',
         status: 'ambiguous',
         quote: 'Hepatology clearance letter present in packet but missing signature and date.',
-        source: 'Hepatology Clearance, p. 9',
+        source: pageRef('Hepatology Clearance', 'clearance'),
         reasoning: 'An unsigned, undated clearance cannot be confirmed as valid or current.',
         clarificationQuestion:
           'Please provide a signed and dated hepatology clearance for this admission.',
@@ -217,7 +231,7 @@ export const CASES = [
         status: 'met',
         quote:
           "Surgeon's note: \"Plan for minimum 2-midnight stay given intraoperative complication and conversion to open procedure.\"",
-        source: 'Surgeon Orders, p. 12',
+        source: pageRef('Surgeon Orders', 'los'),
         reasoning:
           'Explicit expectation of 2 or more midnights documented following conversion to open procedure.',
       },
@@ -231,14 +245,14 @@ export const CASES = [
     summary: 'Fax scan quality too low to extract reliably',
     procedure: 'Unknown — extraction failed',
     requestedSetting: 'Inpatient',
-    packetPages: 14,
+    packetPages: PACKET_PAGES,
     parseFailed: true,
     // CMS decision clock: standard = 7 days, expedited = 72 hours.
     cmsClock: { type: 'standard', daysRemaining: 5 },
-    unreadablePages: 'Pages 4–9',
+    unreadablePages: 'Pages 24–61',
     failureCause: 'low-resolution scan, visible skew and compression artifacts',
     failureReason:
-      'Image quality too low to extract text reliably. Pages 4–9 of the faxed packet are illegible (low-resolution scan, visible skew and compression artifacts).',
+      'Image quality too low to extract text reliably. Pages 24–61 of the faxed packet are illegible (low-resolution scan, visible skew and compression artifacts).',
     extraction: [],
     criteria: [],
   },
@@ -250,7 +264,7 @@ export const CASES = [
     summary: 'Elective cholecystectomy, resolved 2 days ago',
     procedure: 'Laparoscopic cholecystectomy, elective',
     requestedSetting: 'Inpatient',
-    packetPages: 14,
+    packetPages: PACKET_PAGES,
     parseFailed: false,
     // CMS decision clock: standard = 7 days, expedited = 72 hours.
     cmsClock: { type: 'standard', daysRemaining: 7 },
@@ -258,22 +272,22 @@ export const CASES = [
       {
         label: 'Procedure',
         value: 'Elective laparoscopic cholecystectomy',
-        doc: 'Surgical Consult, p. 2',
+        doc: pageRef('Surgical Consult', 'procedure'),
       },
       {
         label: 'Comorbidities',
         value: 'Type 2 diabetes mellitus, well-controlled on metformin',
-        doc: 'History & Physical, p. 4',
+        doc: pageRef('History & Physical', 'comorbidities'),
       },
       {
         label: 'Clearance',
         value: 'Anesthesia pre-op clearance on file, signed 09/21/2026',
-        doc: 'Pre-Op Clearance, p. 7',
+        doc: pageRef('Pre-Op Clearance', 'clearance'),
       },
       {
         label: 'Length of Stay',
         value: 'Surgeon order: anticipate 2-midnight admission for pain control and monitoring',
-        doc: 'Surgeon Orders, p. 9',
+        doc: pageRef('Surgeon Orders', 'los'),
       },
     ],
     criteria: [
@@ -281,28 +295,28 @@ export const CASES = [
         id: 'procedure',
         status: 'met',
         quote: 'Op note: elective laparoscopic cholecystectomy.',
-        source: 'Surgical Consult, p. 2',
+        source: pageRef('Surgical Consult', 'procedure'),
         reasoning: 'Procedure is on the inpatient-appropriate list for elective gallbladder removal.',
       },
       {
         id: 'comorbidities',
         status: 'met',
         quote: 'H&P: Type 2 diabetes mellitus, well-controlled on metformin.',
-        source: 'History & Physical, p. 4',
+        source: pageRef('History & Physical', 'comorbidities'),
         reasoning: 'Documented comorbidity supports inpatient monitoring during recovery.',
       },
       {
         id: 'clearance',
         status: 'met',
         quote: 'Anesthesia Pre-Op Clearance, signed 09/21/2026.',
-        source: 'Pre-Op Clearance, p. 7',
+        source: pageRef('Pre-Op Clearance', 'clearance'),
         reasoning: 'Clearance is on file and within the required 30-day window.',
       },
       {
         id: 'los',
         status: 'met',
         quote: "Surgeon's order: \"Anticipate 2-midnight admission for pain control and monitoring.\"",
-        source: 'Surgeon Orders, p. 9',
+        source: pageRef('Surgeon Orders', 'los'),
         reasoning: 'Documented length of stay meets the 2-midnight inpatient threshold.',
       },
     ],
@@ -313,15 +327,30 @@ export const CASES = [
       phase: 'extracted',
       determination: { outcome: 'Approved', resolvedVia: 'straight-through', resolvedBy: 'nurse' },
       audit: [
-        { at: 'Sep/23/2026, 8:14 AM', label: 'Case received', group: 'received', status: 'pre_review' },
+        { ...seededAt(2, 8, 14), label: 'Case received', group: 'received', status: 'pre_review' },
         {
-          at: 'Sep/23/2026, 8:16 AM',
+          ...seededAt(2, 8, 16),
           label: '4 of 4 criteria matched — lighter-touch review eligible',
           group: 'matched',
           status: 'pre_review',
         },
-        { at: 'Sep/23/2026, 8:17 AM', label: 'Determined — Approved', group: 'determined', status: 'determined' },
+        { ...seededAt(2, 8, 17), label: 'Determined — Approved', group: 'determined', status: 'determined', outcome: 'Approved' },
+        {
+          ...seededAt(1, 19, 42),
+          label: 'Patient: accepted cost estimate — 6-month payment plan',
+          group: 'patient-seed-1',
+          status: 'determined',
+          patientEvent: { type: 'accepted_later', when: 'later', option: 6, monthly: 143.34, amount: 860 },
+        },
       ],
+      // Emily has already opened her portal and set up a payment plan, so
+      // the patient-engagement report has a real data point from the start.
+      patient: {
+        viewed: true,
+        decision: 'accepted',
+        payment: { when: 'later', option: 6, monthly: 143.34, amount: 860, ref: null },
+        checklist: { ride: true },
+      },
     },
   },
   {
@@ -332,7 +361,7 @@ export const CASES = [
     summary: 'Urgent hip fracture repair, cardiology clearance not attached, 4 hours left on the clock',
     procedure: 'Hemiarthroplasty, left hip (femoral neck fracture)',
     requestedSetting: 'Inpatient',
-    packetPages: 14,
+    packetPages: PACKET_PAGES,
     parseFailed: false,
     // CMS decision clock: standard = 7 days, expedited = 72 hours.
     cmsClock: { type: 'expedited', hoursRemaining: 4 },
@@ -340,23 +369,23 @@ export const CASES = [
       {
         label: 'Procedure',
         value: 'Left hip hemiarthroplasty for displaced femoral neck fracture (urgent)',
-        doc: 'Orthopedic Consult, p. 2',
+        doc: pageRef('Orthopedic Consult', 'procedure'),
       },
       {
         label: 'Comorbidities',
         value: 'Age 81; type 2 diabetes on insulin; atrial fibrillation, on anticoagulation',
-        doc: 'History & Physical, p. 4',
+        doc: pageRef('History & Physical', 'comorbidities'),
       },
       {
         label: 'Clearance',
         value:
           'Anesthesia clearance on file, signed 09/25/2026. Cardiology clearance referenced but not attached.',
-        doc: 'Pre-Op Clearance, p. 6',
+        doc: pageRef('Pre-Op Clearance', 'clearance'),
       },
       {
         label: 'Length of Stay',
         value: 'Surgeon order: anticipate 3-midnight admission for pain control and early mobilization',
-        doc: 'Surgeon Orders, p. 8',
+        doc: pageRef('Surgeon Orders', 'los'),
       },
     ],
     criteria: [
@@ -364,14 +393,14 @@ export const CASES = [
         id: 'procedure',
         status: 'met',
         quote: 'Consult: displaced left femoral neck fracture, hemiarthroplasty indicated.',
-        source: 'Orthopedic Consult, p. 2',
+        source: pageRef('Orthopedic Consult', 'procedure'),
         reasoning: 'Hip fracture repair is on the inpatient-appropriate procedure list.',
       },
       {
         id: 'comorbidities',
         status: 'met',
         quote: 'H&P: age 81; insulin-dependent type 2 diabetes; atrial fibrillation on anticoagulation.',
-        source: 'History & Physical, p. 4',
+        source: pageRef('History & Physical', 'comorbidities'),
         reasoning:
           'Documented comorbidities raise perioperative risk, supporting inpatient monitoring.',
       },
@@ -380,7 +409,7 @@ export const CASES = [
         status: 'ambiguous',
         quote:
           'Anesthesia pre-op clearance, signed 09/25/2026. Cardiology clearance referenced in H&P, not attached.',
-        source: 'Pre-Op Clearance, p. 6',
+        source: pageRef('Pre-Op Clearance', 'clearance'),
         reasoning:
           'Atrial fibrillation on anticoagulation requires documented cardiology clearance. The H&P mentions it, but no signed note is in the packet.',
         clarificationQuestion:
@@ -395,7 +424,7 @@ export const CASES = [
         status: 'met',
         quote:
           "Surgeon's order: \"Anticipate 3-midnight admission for pain control and early mobilization.\"",
-        source: 'Surgeon Orders, p. 8',
+        source: pageRef('Surgeon Orders', 'los'),
         reasoning: 'Documented length of stay exceeds the 2-midnight inpatient threshold.',
       },
     ],

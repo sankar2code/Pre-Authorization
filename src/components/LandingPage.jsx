@@ -1,3 +1,4 @@
+import { PACKET_PAGES } from '../data/packet'
 import { useState } from 'react'
 import Modal from './Modal'
 import WorkflowDiagram from './WorkflowDiagram'
@@ -60,11 +61,11 @@ const TONE = {
 }
 
 const CURRENT_STEPS = [
-  { icon: FaxIcon, tone: 'routine', text: 'Request and 14-page packet arrive by fax or portal.' },
+  { icon: FaxIcon, tone: 'routine', text: `Request and ${PACKET_PAGES}-page packet arrive by fax or portal.` },
   {
     icon: EyeSearchIcon,
     tone: 'routine',
-    text: 'The nurse reads all 14 pages to find comorbidities, cardiology clearance and expected length of stay, each in a different section.',
+    text: `The nurse reads all ${PACKET_PAGES} pages to find comorbidities, cardiology clearance and expected length of stay, each in a different section.`,
   },
   {
     icon: ClipboardCheckIcon,
@@ -182,7 +183,7 @@ const FUTURE_STEPS = [
   },
 ]
 
-export default function LandingPage({ onEnter, theme }) {
+export default function LandingPage({ onEnter, onPatientView, theme }) {
   const [view, setView] = useState('current')
   const [showDiagram, setShowDiagram] = useState(false)
   const isCurrent = view === 'current'
@@ -251,7 +252,7 @@ export default function LandingPage({ onEnter, theme }) {
           {isCurrent && (
             <div className="mb-2 flex items-center gap-3 rounded-lg border border-notmet-border bg-notmet-bg px-3 py-1.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-notmet bg-surface text-base font-semibold text-notmet">
-                14
+                {PACKET_PAGES}
               </span>
               <div>
                 <p className="text-sm font-semibold text-ink">Pages, one packet, read manually</p>
@@ -304,12 +305,18 @@ export default function LandingPage({ onEnter, theme }) {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="mt-4 flex flex-wrap justify-center gap-3">
         <button
           onClick={onEnter}
           className="rounded-md bg-brand px-6 py-3 text-sm font-medium text-white transition hover:bg-brand-dark"
         >
           Enter the Prototype →
+        </button>
+        <button
+          onClick={onPatientView}
+          className="rounded-md border border-nurse/40 bg-nurse-tint px-6 py-3 text-sm font-medium text-nurse-dark transition hover:border-nurse"
+        >
+          Patient view →
         </button>
       </div>
 

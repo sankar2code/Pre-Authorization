@@ -1,5 +1,6 @@
 import * as pdfjs from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import PACKET_INDEX from './data/packetIndex.json'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -41,61 +42,144 @@ function highlightRects(items, viewport) {
     })
 }
 
+function sectionFor(n) {
+  return PACKET_INDEX.sections.find((s) => n >= s.start && n <= s.end)
+}
+
 async function main() {
   const doc = await pdfjs.getDocument({ url: `${import.meta.env.BASE_URL}packet.pdf` }).promise
-  document.getElementById('sub').textContent = label
-    ? `${label} — page ${targetPage} of ${doc.numPages}`
-    : `${doc.numPages} pages`
+  const total = doc.numPages
+  const sub = document.getElementById('sub')
+  const pageInput = document.getElementById('pageInput')
+  const sectionSelect = document.getElementById('sections')
+  document.getElementById('pageTotal').textContent = `of ${total}`
+  pageInput.max = total
 
+  const targetSection = sectionFor(targetPage)
+  sub.textContent = label
+    ? `${label} — page ${targetPage} of ${total}${targetSection ? ` · ${targetSection.title}` : ''}`
+    : `${total} pages`
+
+  for (const s of PACKET_INDEX.sections) {
+    const opt = document.createElement('option')
+    opt.value = s.start
+    opt.textContent = `${s.title} (${s.start === s.end ? `p. ${s.start}` : `pp. ${s.start}–${s.end}`})`
+    sectionSelect.appendChild(opt)
+  }
+
+  // Every page of the packet is letter size, so page 1's viewport sizes all
+  // the placeholders up front and scroll positions are right before any
+  // page has rendered.
+  const first = await doc.getPage(1)
+  const scale = Math.min(1.4, (window.innerWidth - 32) / first.getViewport({ scale: 1 }).width)
+  const base = first.getViewport({ scale })
   const container = document.getElementById('pages')
-  const scale = Math.min(1.4, (window.innerWidth - 32) / 612)
   const holders = []
-  for (let n = 1; n <= doc.numPages; n++) {
+  for (let n = 1; n <= total; n++) {
     const div = document.createElement('div')
     div.className = 'page'
     div.dataset.page = n
+    div.style.width = `${base.width}px`
+    div.style.height = `${base.height}px`
+    div.innerHTML = `<span class="num">Page ${n}</span>`
     container.appendChild(div)
     holders.push(div)
   }
 
-  let firstHit = null
-  for (let n = 1; n <= doc.numPages; n++) {
-    const page = await doc.getPage(n)
-    const viewport = page.getViewport({ scale })
-    const div = holders[n - 1]
-    div.style.width = `${viewport.width}px`
-    div.style.height = `${viewport.height}px`
-    const canvas = document.createElement('canvas')
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = viewport.width * dpr
-    canvas.height = viewport.height * dpr
-    canvas.style.width = `${viewport.width}px`
-    canvas.style.height = `${viewport.height}px`
-    div.appendChild(canvas)
-    await page.render({
-      canvasContext: canvas.getContext('2d'),
-      viewport,
-      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
-    }).promise
+  // Render on demand and release canvases far off-screen: drawing all 100+
+  // pages at once would hold well over a gigabyte of canvas memory.
+  const rendered = new Map() // page number -> render promise
+  async function renderPage(n) {
+    if (rendered.has(n)) return rendered.get(n)
+    const job = (async () => {
+      const page = await doc.getPage(n)
+      const viewport = page.getViewport({ scale })
+      const div = holders[n - 1]
+      const canvas = document.createElement('canvas')
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = viewport.width * dpr
+      canvas.height = viewport.height * dpr
+      canvas.style.width = `${viewport.width}px`
+      canvas.style.height = `${viewport.height}px`
+      await page.render({
+        canvasContext: canvas.getContext('2d'),
+        viewport,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
+      }).promise
+      div.replaceChildren(canvas)
 
-    if (n === targetPage && phrase) {
-      const { items } = await page.getTextContent()
-      for (const r of highlightRects(items, viewport)) {
-        const hl = document.createElement('div')
-        hl.className = 'hl'
-        Object.assign(hl.style, {
-          left: `${r.left - 2}px`, top: `${r.top - 1}px`,
-          width: `${r.width + 4}px`, height: `${r.height + 2}px`,
-        })
-        div.appendChild(hl)
-        firstHit ??= hl
+      let firstHit = null
+      if (n === targetPage && phrase) {
+        const { items } = await page.getTextContent()
+        for (const r of highlightRects(items, viewport)) {
+          const hl = document.createElement('div')
+          hl.className = 'hl'
+          Object.assign(hl.style, {
+            left: `${r.left - 2}px`, top: `${r.top - 1}px`,
+            width: `${r.width + 4}px`, height: `${r.height + 2}px`,
+          })
+          div.appendChild(hl)
+          firstHit ??= hl
+        }
+        div.dataset.highlighted = firstHit ? 'true' : 'false'
       }
-      div.dataset.highlighted = firstHit ? 'true' : 'false'
-    }
-    if (n === targetPage) {
-      ;(firstHit ?? div).scrollIntoView({ block: firstHit ? 'center' : 'start' })
-    }
+      return firstHit
+    })()
+    rendered.set(n, job)
+    return job
   }
+
+  function release(n) {
+    if (!rendered.has(n) || n === targetPage) return
+    rendered.delete(n)
+    holders[n - 1].innerHTML = `<span class="num">Page ${n}</span>`
+  }
+
+  // Target page first, so the cited sentence is on screen as fast as possible.
+  const firstHit = await renderPage(targetPage)
+  ;(firstHit ?? holders[targetPage - 1]).scrollIntoView({ block: firstHit ? 'center' : 'start' })
+
+  const near = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        const n = Number(e.target.dataset.page)
+        if (e.isIntersecting) renderPage(n)
+        else release(n)
+      }
+    },
+    { rootMargin: '1200px 0px' },
+  )
+  holders.forEach((h) => near.observe(h))
+
+  // Keep the page box in step with whatever page fills the middle of the view.
+  const current = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting && document.activeElement !== pageInput) pageInput.value = e.target.dataset.page
+      }
+    },
+    { rootMargin: '-50% 0px -50% 0px' },
+  )
+  holders.forEach((h) => current.observe(h))
+  pageInput.value = targetPage
+
+  function goTo(n) {
+    const page = Math.min(Math.max(1, Math.round(n)), total)
+    holders[page - 1].scrollIntoView({ block: 'start' })
+    pageInput.value = page
+  }
+  pageInput.addEventListener('change', () => goTo(Number(pageInput.value) || 1))
+  pageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      goTo(Number(pageInput.value) || 1)
+      pageInput.blur()
+    }
+  })
+  sectionSelect.addEventListener('change', () => {
+    if (sectionSelect.value) goTo(Number(sectionSelect.value))
+    sectionSelect.value = ''
+  })
+
   document.body.dataset.ready = 'true'
 }
 

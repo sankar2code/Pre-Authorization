@@ -28,6 +28,8 @@ import ProviderResponse from './components/ProviderResponse'
 import EscalationHandoff from './components/EscalationHandoff'
 import Determination from './components/Determination'
 import FailureState from './components/FailureState'
+import PatientPicker from './components/patient/PatientPicker'
+import PatientPortal from './components/patient/PatientPortal'
 
 const SCREEN_STEP = {
   loading: 'extracted',
@@ -55,8 +57,12 @@ export default function App() {
   const [clarificationModalOpen, setClarificationModalOpen] = useState(false)
   const [denialModalOpen, setDenialModalOpen] = useState(false)
   const [notifyModalOpen, setNotifyModalOpen] = useState(false)
+  // Patient portal: which patient is open, and where Back should return to.
+  const [patientCaseId, setPatientCaseId] = useState(null)
+  const [patientReturn, setPatientReturn] = useState('patient_picker')
   const { theme, toggleTheme } = useTheme()
 
+  const caseRuntime = useCaseRuntime()
   const {
     runtime,
     markRead,
@@ -72,7 +78,7 @@ export default function App() {
     recordApproval,
     recordDenial,
     notifyProviderAndClose,
-  } = useCaseRuntime()
+  } = caseRuntime
 
   const caseData = activeCaseId ? getCase(activeCaseId) : null
   const rt = activeCaseId ? runtime[activeCaseId] : null
@@ -200,11 +206,50 @@ export default function App() {
 
   const themeToggle = <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
+  function openPatient(caseId, returnTo) {
+    setPatientCaseId(caseId)
+    setPatientReturn(returnTo)
+    setScreen('patient')
+    window.scrollTo(0, 0)
+  }
+
+  if (screen === 'patient_picker') {
+    return (
+      <>
+        {themeToggle}
+        <PatientPicker
+          runtime={runtime}
+          onOpen={(id) => openPatient(id, 'patient_picker')}
+          onBack={() => setScreen('landing')}
+        />
+      </>
+    )
+  }
+
+  if (screen === 'patient') {
+    return (
+      <>
+        {themeToggle}
+        <PatientPortal
+          key={patientCaseId}
+          caseData={getCase(patientCaseId)}
+          rt={runtime[patientCaseId]}
+          actions={caseRuntime}
+          onBack={() => setScreen(patientReturn)}
+        />
+      </>
+    )
+  }
+
   if (screen === 'landing') {
     return (
       <>
         {themeToggle}
-        <LandingPage onEnter={() => setScreen('queue')} theme={theme} />
+        <LandingPage
+          onEnter={() => setScreen('queue')}
+          onPatientView={() => setScreen('patient_picker')}
+          theme={theme}
+        />
       </>
     )
   }
@@ -357,6 +402,7 @@ export default function App() {
           criteria={rt.criteria}
           determination={rt.determination}
           onBackToQueue={goToQueue}
+          onViewAsPatient={() => openPatient(activeCaseId, 'determination')}
         />
       )}
     </div>

@@ -1,24 +1,32 @@
-// One shared packet PDF (public/packet.pdf) backs every case, so the exact
-// line to highlight is fixed per criterion type rather than per case. The
-// phrase must match the packet's text (case/whitespace-insensitive); it may
-// wrap across lines.
-const PACKET_TARGETS = {
-  procedure: {
-    page: 4,
-    q: 'Recommend open lumbar spinal fusion, L4-L5, with posterior instrumentation.',
-  },
-  comorbidities: {
-    page: 6,
-    q: 'Congestive heart failure, HFrEF, EF 40% (echo 07/2026)',
-  },
-  clearance: {
-    page: 10,
-    q: 'Patient is cleared for surgery from a cardiac standpoint.',
-  },
-  los: {
-    page: 12,
-    q: 'Patient anticipated to require inpatient admission post-operatively for pain control, mobilization, and cardiac monitoring',
-  },
+import PACKET_INDEX from './packetIndex.json'
+
+// One shared packet PDF (public/packet.pdf) backs every case. Its page
+// numbers come from packetIndex.json, which scripts/generate-packet.py
+// writes alongside the PDF, so a regenerated packet can never leave a
+// citation pointing at the wrong page. Each anchor's quote must match the
+// packet's text (case/whitespace-insensitive); it may wrap across lines.
+// scripts/check-packet.py verifies every anchor against the PDF.
+export const PACKET_PAGES = PACKET_INDEX.totalPages
+export const PACKET_SECTIONS = PACKET_INDEX.sections
+
+export function anchor(key) {
+  const a = PACKET_INDEX.anchors[key]
+  if (!a) throw new Error(`Unknown packet anchor: ${key}`)
+  return a
+}
+
+// "Surgical Consult, p. 16" — the label a criterion or extracted fact
+// shows, with the page the viewer will actually open to.
+export function pageRef(label, key) {
+  return `${label}, p. ${anchor(key).page}`
+}
+
+// The packet evidence behind each inpatient criterion.
+const CRITERION_ANCHOR = {
+  procedure: 'procedure',
+  comorbidities: 'comorbidities',
+  clearance: 'clearance',
+  los: 'los',
 }
 
 const VIEWER_URL = `${import.meta.env.BASE_URL}packet-viewer.html`
@@ -36,9 +44,10 @@ function openViewer(query) {
 // With a criterion id, opens the packet scrolled to and highlighting that
 // criterion's evidence; without one, opens it from the top.
 export function openPacketWindow(criterionId, label) {
-  const target = PACKET_TARGETS[criterionId]
+  const key = CRITERION_ANCHOR[criterionId]
+  const target = key ? anchor(key) : null
   const query = target
-    ? `?${new URLSearchParams({ page: target.page, q: target.q, label })}`
+    ? `?${new URLSearchParams({ page: target.page, q: target.quote, label })}`
     : ''
   openViewer(query)
 }

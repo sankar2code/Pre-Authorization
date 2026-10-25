@@ -1,6 +1,6 @@
 # Pre-Auth Demo
 
-A working prototype of an AI-assisted **Prior Authorization Decision Support** tool for utilization management (UM) nurses.
+A working prototype of **Prior Authorization AI**, an AI-assisted tool for utilization management (UM) nurses.
 
 Given a realistic 106-page faxed clinical packet (primary care and surgical notes, imaging, 24 physical therapy visits, injection records, H&P, cardiology clearance, anesthesia, labs, orders and consents), the tool extracts the relevant facts, matches them against a hierarchical set of inpatient level-of-care criteria (NCD → LCD → payer policy → MCG), and surfaces a criteria checklist with source citations back to the exact page/sentence in the packet. Every citation is genuine and clickable — nothing is asserted without a traceable source. Ambiguous criteria are never guessed: the nurse (or, for higher-risk cases, a medical director) still makes the final call, with the tool's reasoning shown alongside the evidence.
 

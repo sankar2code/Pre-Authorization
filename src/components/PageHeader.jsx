@@ -1,4 +1,4 @@
-const PRODUCT_NAME = 'Prior Authorization Decision Support'
+const PRODUCT_NAME = 'Prior Authorization AI'
 
 export default function PageHeader({ title, subtitle }) {
   return (

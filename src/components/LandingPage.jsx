@@ -245,7 +245,7 @@ export default function LandingPage({ onEnter, onPatientView, theme }) {
             <ClipboardIcon className="h-[18px] w-[18px]" />
           </span>
           <p className="bg-gradient-to-r from-brand-dark to-brand bg-clip-text text-[11px] font-semibold uppercase tracking-[0.22em] text-transparent sm:text-sm">
-            Prior Authorization Decision Support
+            Prior Authorization AI
           </p>
         </div>
       </div>

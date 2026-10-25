@@ -1,4 +1,4 @@
-# Replit Agent prompt: Prior Authorization Decision Support (with Patient Portal)
+# Replit Agent prompt: Prior Authorization AI (with Patient Portal)
 
 > **How to use:** paste everything below the line into Replit Agent. Attach these files from your Pre-Auth Demo folder in the same message:
 > - `Pre-Authorization-PRD-v1.1.pdf` (product context)
@@ -11,7 +11,7 @@
 
 ## Goal
 
-Build a front-end-only web prototype called **Prior Authorization Decision Support**. A utilization management (UM) nurse reviews AI-extracted evidence from a 106-page faxed clinical packet against four inpatient level-of-care criteria, then approves, requests clarification from the provider, or escalates to a medical director (MD). A **patient portal** shows the member the same case in plain language, live. All "AI" behavior is scripted. There is no backend, no database, no API keys and no real payments. All data is synthetic. The attached PRD (v1.1) describes the product; this prompt is the build spec.
+Build a front-end-only web prototype called **Prior Authorization AI**. A utilization management (UM) nurse reviews AI-extracted evidence from a 106-page faxed clinical packet against four inpatient level-of-care criteria, then approves, requests clarification from the provider, or escalates to a medical director (MD). A **patient portal** shows the member the same case in plain language, live. All "AI" behavior is scripted. There is no backend, no database, no API keys and no real payments. All data is synthetic. The attached PRD (v1.1) describes the product; this prompt is the build spec.
 
 ## Tech stack (use exactly this)
 
